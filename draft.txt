@@ -1,0 +1,55 @@
+ramblings and planning notes
+- loop:
+   - read new image
+   - predict
+   - measure
+   - update
+   - map management
+
+
+
+
+- map:
+	- X vector
+	- P matrix
+	- camera
+	- features
+
+
+
+camera:
+	- labelref
+	- intrinsic
+	methods:
+		- predict( new_x, jacobi, dt )
+		- project_point()
+
+
+
+feature:
+	- camera pose at detection
+	- image patch
+	- labelRef
+	- times predicted
+	- times measured
+	- havent measured since
+	- calculated:
+		- predicted to apear this frame?
+		- predicted UV coords
+		- warped patch
+		- 
+
+	methods:
+		- static create( map, picture )
+		- predict( new_x, jacobi, dt )
+		- create( map, picture, uv )
+		- measure( image )
+		- update( measurement, jacobi )
+		- should_delete
+
+
+
+- testing
+	- measurements from file
+	- rendered image sequences
+	- real data
