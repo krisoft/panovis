@@ -1,8 +1,11 @@
 #include "camera.h"
 #include "map.h"
 
-#include "ceres/rotation.h"
 #include "ceres/ceres.h"
+#include "ceres/rotation.h"
+using ceres::internal::AutoDiff;
+
+#include <assert.h>
 
 const int Camera::DIM = 7;
 
@@ -26,8 +29,8 @@ Camera::Camera( const CameraParams params, const int index_offset, Map *map ){
     this->map->P( this->index_offset + i, this->index_offset + i ) = 0.4;
   }
   // init angular velocity covariance
-  for(int i=0; i<3; i++){
-    this->map->P( this->index_offset + i + 4, this->index_offset + i + 4 ) = 1000.0;
+  for(int i=4; i<7; i++){
+    this->map->P( this->index_offset + i , this->index_offset + i ) = 1000.0;
   }
 }
 
@@ -41,11 +44,11 @@ struct CameraPredictFunc {
   template <typename A>
   bool operator()(A const in[Camera::DIM], A result[Camera::DIM]) const {
     A Adt = A(dt);
-    A qattitude[4];
-    qattitude[0] = in[0];
-    qattitude[1] = in[1];
-    qattitude[2] = in[2];
-    qattitude[3] = in[3];
+    A q[4];
+    q[0] = in[0];
+    q[1] = in[1];
+    q[2] = in[2];
+    q[3] = in[3];
 
     A q_norm = sqrt( q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3] );
     q[0] /= q_norm;
@@ -61,7 +64,7 @@ struct CameraPredictFunc {
     A qomegadt[4];
     A newq[4];
     AngleAxisToQuaternion( omegadt, qomegadt );
-    QuaternionProduct( qattitude, qomegadt, newq );
+    QuaternionProduct( q, qomegadt, newq );
     result[0] = newq[0];
     result[1] = newq[1];
     result[2] = newq[2];
@@ -77,11 +80,42 @@ struct CameraPredictFunc {
 };
 
 
-void Camera::predict( double dt, Eigen::VectorXd &new_x, Eigen::MatrixXd &jacobi );
-  assert( new_x.cols()>=this->index_offset+Camera::DIM );
+void Camera::predict( double dt, Eigen::VectorXd &new_x, Eigen::MatrixXd &jacobi ){
+  assert( new_x.rows()>=this->index_offset+Camera::DIM );
   assert( jacobi.cols()==jacobi.rows() );
   assert( jacobi.cols()>=this->index_offset+Camera::DIM );
 
+  CameraPredictFunc fv(dt);
+  double calc_jacobian[Camera::DIM*Camera::DIM];
+  double predicted_state[Camera::DIM];
+  double old_x[Camera::DIM];
+
+  for(int i = 0; i<Camera::DIM; i++){
+    old_x[i] = this->map->x( this->index_offset+i );
+  }
+
+  double *parameters[] = { old_x };
+  double *jacobians[] = { calc_jacobian };
+
+  AutoDiff<CameraPredictFunc, double, Camera::DIM>::Differentiate(
+    fv, parameters, Camera::DIM, predicted_state, jacobians);
+
+  for(int i = 0; i<Camera::DIM; i++){
+    new_x( this->index_offset+i ) = predicted_state[i];
+    for(int j = 0; j<Camera::DIM; j++){
+      jacobi( this->index_offset+i, this->index_offset+j ) = calc_jacobian[ j+i*Camera::DIM ];
+    }
+  }
+}
+
+
+void Camera::predict_noise( Eigen::MatrixXd &noise ){
+  for(int i=0; i<4; i++){
+    noise( this->index_offset+i, this->index_offset+i ) = 0.001;
+  }
+  for(int i=4; i<7; i++){
+    noise( this->index_offset+i, this->index_offset+i ) = 0.1;
+  }
 }
 
 

@@ -19,6 +19,12 @@ file(GLOB LIB_SRC_FILES ${PROJECT_SOURCE_DIR}/lib/*.cpp)
 add_library( rvision ${LIB_SRC_FILES})
 
 
+#-------------------
+# Generate Camera Predict Data
+#-------------------
+
+add_executable(generate_camera_predict  ${PROJECT_SOURCE_DIR}/tests/generate_camera_predict.cpp)
+target_link_libraries(generate_camera_predict ${CERES_LIBRARIES})
 
 #-------------------
 # Test
@@ -31,7 +37,7 @@ include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
 set(PROJECT_TEST_NAME ${PROJECT_NAME_STR}_test)
 
-file(GLOB TEST_SRC_FILES ${PROJECT_SOURCE_DIR}/tests/*.cpp)
+file(GLOB TEST_SRC_FILES ${PROJECT_SOURCE_DIR}/tests/*_test.cpp)
 add_executable(${PROJECT_TEST_NAME} ${TEST_SRC_FILES})
 target_link_libraries(${PROJECT_TEST_NAME}  gtest gtest_main rvision ${CERES_LIBRARIES})
 add_dependencies(${PROJECT_TEST_NAME} googletest)
