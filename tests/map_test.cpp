@@ -3,14 +3,7 @@
 
 TEST(map_test, init_block_1)
 {
-	CameraParams params;
-	params.pic_width = 432;
-	params.pic_height = 768;
-	params.intrinsic << 668.48649151, 0, 391.70678497,
-	0, 668.85548011, 218.61361818,
-	0, 0, 1;
-	params.dist << 0.09967969, -0.1972944,  -0.00055862,  0.0030309,   0.18338698;
-
+	CameraParams params = initAndroidParams();
 	Map map(params);
 
 	EXPECT_EQ(1, map.x.cols() );

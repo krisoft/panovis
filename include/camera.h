@@ -2,10 +2,11 @@
 #define RVISION_CAMERA_H_
 
 #include <Eigen/Dense>
+#include <opencv2/opencv.hpp>
 
 struct CameraParams {
-  Eigen::Matrix3d intrinsic;
-  Eigen::Matrix< double, 5, 1 > dist;
+  cv::Mat intrinsic;
+  cv::Mat  dist;
   int pic_width;
   int pic_height;
 };
@@ -13,13 +14,11 @@ struct CameraParams {
 class Map;
 
 class Camera {
-    
     CameraParams params;
     Map *map;
     int index_offset;
 
   public:
-
     static const int DIM;
     Camera( const CameraParams params, const int index_offset, Map *map );
 
@@ -28,9 +27,13 @@ class Camera {
     void predict( double dt, Eigen::VectorXd &new_x, Eigen::MatrixXd &jacobi );
     void predict_noise( Eigen::MatrixXd &noise );
 
+    void convert_uv_to_ea( double u, double v, double &elevation, double &azimuth);
+
 /*    void project_point( const Eigen::Vector3d point, bool &visible, Eigen::Vector2d &uv);*/
     
 };
 
+CameraParams initAndroidParams();
+CameraParams initSimpleParams();
 
 #endif  // RVISION_CAMERA_H_

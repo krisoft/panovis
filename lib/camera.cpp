@@ -6,6 +6,10 @@
 using ceres::internal::AutoDiff;
 
 #include <assert.h>
+#include <limits>
+
+#include <iostream>
+using namespace std;
 
 const int Camera::DIM = 7;
 
@@ -116,6 +120,40 @@ void Camera::predict_noise( Eigen::MatrixXd &noise ){
   for(int i=4; i<7; i++){
     noise( this->index_offset+i, this->index_offset+i ) = 0.1;
   }
+}
+
+
+void Camera::convert_uv_to_ea( double u, double v, double &elevation, double &azimuth){
+  cv::Mat src = cv::Mat::zeros(1, 1, CV_64FC2);
+  src.at<cv::Vec2d>(0)[0] = u;
+  src.at<cv::Vec2d>(0)[1] = v;
+  cv::Mat dst = cvCreateMat(1, 1, CV_64FC2);;
+  undistortPoints(src, dst, this->params.intrinsic, this->params.dist);
+
+  assert( dst.type()==CV_64FC2 );
+  assert( dst.size().width==1 );
+  assert( dst.size().height==1 );
+
+  double point[3];
+  point[0] = dst.at<cv::Vec2d>(0)[0];
+  point[1] = dst.at<cv::Vec2d>(0)[1];
+  point[2] = 1.0;
+  double backrotated_point[3];
+  double inverse_quaternion[4];
+  for(int i=0; i<4; i++){
+    inverse_quaternion[ i ] = this->map->x( this->index_offset+i );
+  }
+  inverse_quaternion[ 0 ] *= -1.0;
+
+  ceres::QuaternionRotatePoint(inverse_quaternion, point, backrotated_point);
+
+  azimuth = atan2( backrotated_point[0], backrotated_point[2] );
+  if( sqrt(backrotated_point[2]*backrotated_point[2] + backrotated_point[0]*backrotated_point[0])==0 ){
+    backrotated_point[2] += numeric_limits<double>::epsilon( );
+    // I don't know if we really need this, could not trigger a division by zero even without it.
+    // on the other hand without it I could not sleep.
+  }
+  elevation = atan( backrotated_point[1] / sqrt(backrotated_point[2]*backrotated_point[2] + backrotated_point[0]*backrotated_point[0]) );
 }
 
 

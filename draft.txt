@@ -1,4 +1,17 @@
 ramblings and planning notes
+
+- coordinate systems
+	camera projection center of the first frame is the origin (O) of the coordinat system.
+	Z coordinate points straight out from the optics.
+	X points to the right. Y points down.
+	P is a point, it's projection into the XZ plane is Pxz. The clockwise angle between Pxz and Z is the azimuth, and the clockwise angle between P and Pxz is the elevation. We represent angles as radians, from -pi/2 to pi/2
+
+
+
+	we store the quaternion which transforms the coordinate system of the current frame to the first frame.
+
+
+
 - loop:
    - read new image
    - predict
