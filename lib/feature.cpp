@@ -16,13 +16,22 @@ Feature::Feature( const int index_offset, Map *map, double u, double v ){
   double elevation;
   double azimuth;
 
-  this->map->cam->convert_uv_to_ea( u, v, elevation, azimuth);
+  map->cam->convert_uv_to_ea( u, v, elevation, azimuth);
 
-  // init quaternion
-  this->map->x( this->index_offset + 0 ) = 1.0;
-  this->map->x( this->index_offset + 1) = 0.0;
+  // init azimuth, elevation
+  map->state( index_offset + 0 ) = elevation;
+  map->state( index_offset + 1) = azimuth;
   // init covariance
   for(int i=0; i<2; i++){
-    this->map->P( this->index_offset + i, this->index_offset + i ) = 0.4; // FIGURE OUT SOMETHING BETTER
+    map->covariance( index_offset + i, index_offset + i ) = 0.4; // FIGURE OUT SOMETHING BETTER
   }
+}
+
+
+void predict( double dt, Eigen::VectorXd &new_x, Eigen::MatrixXd &jacobi ){
+}
+
+
+void predict_noise( Eigen::MatrixXd &noise ){
+
 }

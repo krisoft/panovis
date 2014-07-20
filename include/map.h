@@ -3,15 +3,21 @@
 
 #include <Eigen/Dense>
 #include "camera.h"
+#include "feature.h"
+#include <vector>
 
 class Map {
   public:
-    Eigen::VectorXd x;
-    Eigen::MatrixXd P;
+    Eigen::VectorXd state;
+    Eigen::MatrixXd covariance;
 
     Camera *cam;
+    std::vector<Feature> features;
+
 
     Map( const CameraParams params );
+
+    void addFeature( double u, double v );
 };
 
 

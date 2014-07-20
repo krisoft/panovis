@@ -19,22 +19,22 @@ Camera::Camera( const CameraParams params, const int index_offset, Map *map ){
   this->map = map;
 
   // init quaternion
-  this->map->x( this->index_offset + 0 ) = 1.0;
-  this->map->x( this->index_offset + 1) = 0.0;
-  this->map->x( this->index_offset + 2) = 0.0;
-  this->map->x( this->index_offset + 3) = 0.0;
+  this->map->state( this->index_offset + 0 ) = 1.0;
+  this->map->state( this->index_offset + 1) = 0.0;
+  this->map->state( this->index_offset + 2) = 0.0;
+  this->map->state( this->index_offset + 3) = 0.0;
   // init angular velocity vector
-  this->map->x( this->index_offset + 4 ) = 0.0;
-  this->map->x( this->index_offset + 5) = 0.0;
-  this->map->x( this->index_offset + 6) = 0.0;
+  this->map->state( this->index_offset + 4 ) = 0.0;
+  this->map->state( this->index_offset + 5) = 0.0;
+  this->map->state( this->index_offset + 6) = 0.0;
 
   // init quaternion covariance
   for(int i=0; i<4; i++){
-    this->map->P( this->index_offset + i, this->index_offset + i ) = 0.4;
+    this->map->covariance( this->index_offset + i, this->index_offset + i ) = 0.4;
   }
   // init angular velocity covariance
   for(int i=4; i<7; i++){
-    this->map->P( this->index_offset + i , this->index_offset + i ) = 1000.0;
+    this->map->covariance( this->index_offset + i , this->index_offset + i ) = 1000.0;
   }
 }
 
@@ -95,7 +95,7 @@ void Camera::predict( double dt, Eigen::VectorXd &new_x, Eigen::MatrixXd &jacobi
   double old_x[Camera::DIM];
 
   for(int i = 0; i<Camera::DIM; i++){
-    old_x[i] = this->map->x( this->index_offset+i );
+    old_x[i] = this->map->state( this->index_offset+i );
   }
 
   double *parameters[] = { old_x };
@@ -141,7 +141,7 @@ void Camera::convert_uv_to_ea( double u, double v, double &elevation, double &az
   double backrotated_point[3];
   double inverse_quaternion[4];
   for(int i=0; i<4; i++){
-    inverse_quaternion[ i ] = this->map->x( this->index_offset+i );
+    inverse_quaternion[ i ] = this->map->state( this->index_offset+i );
   }
   inverse_quaternion[ 0 ] *= -1.0;
 

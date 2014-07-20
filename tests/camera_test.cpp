@@ -24,7 +24,7 @@ TEST(camera_test, predict)
 
   for(int test_id=0; test_id<test_case_count; test_id++){
     for(int j=0; j<7; j++){
-      inp >> map.x( j );
+      inp >> map.state( j );
     }
     double dt;
     inp >> dt;
@@ -113,7 +113,7 @@ TEST(camera_test, convert_uv_to_ea_simple)
     double v = imagePoints.at<double>(0,1);
     double a,e;
     for( int i=0; i<4; i++ ){
-     map.x( i ) = q[i];
+     map.state( i ) = q[i];
     }
     map.cam->convert_uv_to_ea( u, v, e, a );
     EXPECT_NEAR( azimuth, a, 0.001);
@@ -170,7 +170,7 @@ TEST(camera_test, convert_uv_to_ea_android)
     double v = imagePoints.at<double>(0,1);
     double a,e;
     for( int i=0; i<4; i++ ){
-     map.x( i ) = q[i];
+     map.state( i ) = q[i];
     }
     map.cam->convert_uv_to_ea( u, v, e, a );
     EXPECT_NEAR( azimuth, a, 0.001);
