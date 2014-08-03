@@ -4,10 +4,9 @@
 #include "random_utils.h"
 #include "ceres/rotation.h"
 
-#include <iostream>
 #include <fstream>
 #include <math.h>
-
+#include <iostream>
 using namespace std;
 
 TEST(camera_test, predict)
@@ -29,8 +28,9 @@ TEST(camera_test, predict)
     double dt;
     inp >> dt;
     Eigen::VectorXd new_x(7);
-    Eigen::MatrixXd jacobi = Eigen::MatrixXd::Zero( 7, 7);;
-    map.cam->predict( dt, new_x, jacobi );
+    Eigen::MatrixXd jacobi = Eigen::MatrixXd::Zero( 7, 7);
+    Eigen::MatrixXd noise = Eigen::MatrixXd::Zero( 7, 7);
+    map.cam->predict( dt, new_x, jacobi, noise );
     for(int j=0; j<7; j++){
       double expected;
       inp >> expected;
@@ -43,24 +43,15 @@ TEST(camera_test, predict)
         EXPECT_NEAR( expected, jacobi(i,j), 0.00001);
       }
     }
-  }
-}
-
-TEST(camera_test, predict_noise)
-{
-  CameraParams params = initAndroidParams();
-  Map map(params);
-
-  Eigen::MatrixXd noise = Eigen::MatrixXd::Zero( 7, 7);
-  map.cam->predict_noise( noise );
-  for(int i=0; i<7; i++){
-    for(int j=0; j<7; j++){
-      if( i==j && i<4 ){
-        EXPECT_NEAR( 0.001, noise(i,j), 0.00001);
-      }else if( i==j && i>=4 ){
-        EXPECT_NEAR( 0.1, noise(i,j), 0.00001);
-      }else{
-        EXPECT_NEAR( 0.0, noise(i,j), 0.00001);
+    for(int i=0; i<7; i++){
+      for(int j=0; j<7; j++){
+        if( i==j && i<4 ){
+          EXPECT_NEAR( 0.001, noise(i,j), 0.00001);
+        }else if( i==j && i>=4 ){
+          EXPECT_NEAR( 0.1, noise(i,j), 0.00001);
+        }else{
+          EXPECT_NEAR( 0.0, noise(i,j), 0.00001);
+        }
       }
     }
   }
@@ -177,3 +168,4 @@ TEST(camera_test, convert_uv_to_ea_android)
     EXPECT_NEAR( elevation, e, 0.001);
   }
 }
+

@@ -18,6 +18,8 @@ class Map {
     Map( const CameraParams params );
 
     void addFeature( double u, double v );
+
+    void predict( double dt ); // propagate the state estimation with dt seconds
 };
 
 

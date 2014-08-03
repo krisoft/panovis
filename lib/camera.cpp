@@ -84,7 +84,7 @@ struct CameraPredictFunc {
 };
 
 
-void Camera::predict( double dt, Eigen::VectorXd &new_x, Eigen::MatrixXd &jacobi ){
+void Camera::predict( double dt, Eigen::VectorXd &new_x, Eigen::MatrixXd &jacobi, Eigen::MatrixXd &noise ){
   assert( new_x.rows()>=this->index_offset+Camera::DIM );
   assert( jacobi.cols()==jacobi.rows() );
   assert( jacobi.cols()>=this->index_offset+Camera::DIM );
@@ -110,10 +110,7 @@ void Camera::predict( double dt, Eigen::VectorXd &new_x, Eigen::MatrixXd &jacobi
       jacobi( this->index_offset+i, this->index_offset+j ) = calc_jacobian[ j+i*Camera::DIM ];
     }
   }
-}
 
-
-void Camera::predict_noise( Eigen::MatrixXd &noise ){
   for(int i=0; i<4; i++){
     noise( this->index_offset+i, this->index_offset+i ) = 0.001;
   }
@@ -121,7 +118,6 @@ void Camera::predict_noise( Eigen::MatrixXd &noise ){
     noise( this->index_offset+i, this->index_offset+i ) = 0.1;
   }
 }
-
 
 void Camera::convert_uv_to_ea( double u, double v, double &elevation, double &azimuth){
   cv::Mat src = cv::Mat::zeros(1, 1, CV_64FC2);

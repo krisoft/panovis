@@ -66,3 +66,40 @@ TEST(map_test, add_feature)
 	}
 }
 
+TEST(map_test, predict)
+{
+	CameraParams params = initSimpleParams();
+	Map map(params);
+	map.addFeature( 100, 125 );
+
+	double w1 = 0.42;
+	double w2 = 0.32;
+	double w3 = 0.22;
+	double dt = 0.1;
+
+	map.state(4) = w1;
+	map.state(5) = w2;
+	map.state(6) = w3;
+
+	map.predict( dt );
+
+	EXPECT_NEAR( w1, map.state(4), 0.00001);
+	EXPECT_NEAR( w2, map.state(5), 0.00001);
+	EXPECT_NEAR( w3, map.state(6), 0.00001);
+
+	w1 *= dt;
+	w2 *= dt;
+	w3 *= dt;
+
+	double length_omega = sqrt(w1*w1 + w2*w2 + w3*w3) * dt;
+	double qw = cos( length_omega*0.5 );
+	double qx = sin( length_omega*0.5 ) * (w1 / length_omega);
+	double qy = sin( length_omega*0.5 ) * (w2 / length_omega);
+	double qz = sin( length_omega*0.5 ) * (w3 / length_omega);
+
+	EXPECT_NEAR( qw, map.state(0), 0.001);
+	EXPECT_NEAR( qx, map.state(1), 0.001);
+	EXPECT_NEAR( qy, map.state(2), 0.001);
+	EXPECT_NEAR( qz, map.state(3), 0.001);
+}
+
