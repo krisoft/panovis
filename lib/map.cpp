@@ -29,6 +29,10 @@ void Map::predict( double dt ){
 
   cam->predict( dt, new_state, jacobi, noise );
 
+  for (std::vector<Feature>::iterator it = features.begin() ; it != features.end(); ++it){
+    it->predict( dt, new_state, jacobi, noise );
+  }
+
   state = new_state;
   covariance = jacobi*covariance*covariance.transpose() + noise;
 

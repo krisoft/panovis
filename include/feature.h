@@ -15,10 +15,7 @@ class Feature {
     static const int DIM;
     Feature( const int index_offset, Map *map, double u, double v );
 
-    void update_index_offset( const int index_offset );
-
-    void predict( double dt, Eigen::VectorXd &new_x, Eigen::MatrixXd &jacobi );
-    void predict_noise( Eigen::MatrixXd &noise );
+    void predict( double dt, Eigen::VectorXd &new_x, Eigen::MatrixXd &jacobi, Eigen::MatrixXd &noise );
     
 };
 

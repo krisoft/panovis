@@ -24,7 +24,7 @@ class Camera {
 
     void update_index_offset( const int index_offset );
 
-    void predict( double dt, Eigen::VectorXd &new_x, Eigen::MatrixXd &jacobi, Eigen::MatrixXd &noise  );
+    void predict( double dt, Eigen::VectorXd &new_x, Eigen::MatrixXd &jacobi, Eigen::MatrixXd &noise );
 
     void convert_uv_to_ea( double u, double v, double &elevation, double &azimuth);
 

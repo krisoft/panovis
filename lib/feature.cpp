@@ -28,10 +28,9 @@ Feature::Feature( const int index_offset, Map *map, double u, double v ){
 }
 
 
-void predict( double dt, Eigen::VectorXd &new_x, Eigen::MatrixXd &jacobi ){
-}
-
-
-void predict_noise( Eigen::MatrixXd &noise ){
-
+void Feature::predict( double dt, Eigen::VectorXd &new_x, Eigen::MatrixXd &jacobi, Eigen::MatrixXd &noise ){
+  for(int i=0; i<2; i++){
+      new_x( index_offset + i ) = map->state( index_offset + i );
+      jacobi( index_offset + i, index_offset + i ) = 1.0;
+  }
 }

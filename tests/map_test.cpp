@@ -72,6 +72,9 @@ TEST(map_test, predict)
 	Map map(params);
 	map.addFeature( 100, 125 );
 
+	double feature_e = map.state(7);
+	double feature_a = map.state(8);
+
 	double w1 = 0.42;
 	double w2 = 0.32;
 	double w3 = 0.22;
@@ -86,6 +89,8 @@ TEST(map_test, predict)
 	EXPECT_NEAR( w1, map.state(4), 0.00001);
 	EXPECT_NEAR( w2, map.state(5), 0.00001);
 	EXPECT_NEAR( w3, map.state(6), 0.00001);
+	EXPECT_NEAR( feature_e, map.state(7), 0.00001);	
+	EXPECT_NEAR( feature_a, map.state(8), 0.00001);	
 
 	w1 *= dt;
 	w2 *= dt;
@@ -101,5 +106,6 @@ TEST(map_test, predict)
 	EXPECT_NEAR( qx, map.state(1), 0.001);
 	EXPECT_NEAR( qy, map.state(2), 0.001);
 	EXPECT_NEAR( qz, map.state(3), 0.001);
-}
 
+	
+}
