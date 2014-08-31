@@ -28,7 +28,7 @@ class Camera {
 
     void convert_uv_to_ea( double u, double v, double &elevation, double &azimuth);
 
-/*    void project_point( const Eigen::Vector3d point, bool &visible, Eigen::Vector2d &uv);*/
+    void project_point( const Eigen::Vector3d point, bool &visible, Eigen::Vector2d &uv,  Eigen::Matrix< double, 2, 3 > &jacobi);
     
 };
 

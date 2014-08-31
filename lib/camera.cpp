@@ -123,7 +123,7 @@ void Camera::convert_uv_to_ea( double u, double v, double &elevation, double &az
   cv::Mat src = cv::Mat::zeros(1, 1, CV_64FC2);
   src.at<cv::Vec2d>(0)[0] = u;
   src.at<cv::Vec2d>(0)[1] = v;
-  cv::Mat dst = cvCreateMat(1, 1, CV_64FC2);;
+  cv::Mat dst = cvCreateMat(1, 1, CV_64FC2);
   undistortPoints(src, dst, this->params.intrinsic, this->params.dist);
 
   assert( dst.type()==CV_64FC2 );
@@ -153,17 +153,70 @@ void Camera::convert_uv_to_ea( double u, double v, double &elevation, double &az
 }
 
 
-/*void Camera::project_point( const Eigen::Vector3d point, bool &visible, Eigen::Vector2d &uv){
+void Camera::project_point( const Eigen::Vector3d point, bool &visible, Eigen::Vector2d &uv,  Eigen::Matrix< double, 2, 3 > &jacobi){
 
   double quaternion[4];
   for(int i=0; i<4; i++){
-    quaternion[i] = this->map->x( this->index_offset + i );
+    quaternion[i] = map->state( this->index_offset + i );
   }
 
-  Eigen::Vector3d rotated_point;
-  ceres::QuaternionRotatePoint(quaternion, point.data(), rotated_point.data());
+  Eigen::Matrix< double, 3, 3, Eigen::RowMajor > f0;
+  ceres::QuaternionToScaledRotation( quaternion, f0.data() );
+
+  Eigen::Vector3d rotated_point = f0*point;
+
+  // Projection with opencv 5parameter distorsion model
+
+  double x = rotated_point(0);
+  double y = rotated_point(1);
+  double z = rotated_point(2);
+
+  if( z<0 ){
+    visible = false;
+    return;
+  }
 
 
+  double fx = params.intrinsic.at<double>( 0, 0);
+  double fy = params.intrinsic.at<double>( 1, 1);
+  double cx = params.intrinsic.at<double>( 0, 2);
+  double cy = params.intrinsic.at<double>( 1, 2);
+
+  double k1 = params.dist.at<double>( 0, 0);
+  double k2 = params.dist.at<double>( 1, 0);
+  double k3 = params.dist.at<double>( 2, 0);
+  double p1 = params.dist.at<double>( 3, 0);
+  double p2 = params.dist.at<double>( 4, 0);
+
+  double x_ = x / z;
+  double y_ = y / z;
+  double r2 = x_*x_ + y_*y_;
+  double d = 1 + k1*r2 + k2*r2*r2 + k3*r2*r2*r2;
+  double x__ = x_*d + 2*p1*x_*y_ + p2*(r2 + 2*x_*x_);
+  double y__ = y_*d + p1*(r2+2*y_*y_) + 2*p2*x_*y_;
+  uv(0) = fx * x__ + cx;
+  uv(1) = fy * y__ + cy;
+
+  if( uv(0)<0 || uv(0)>params.pic_width || uv(1)<0 || uv(1)>params.pic_height ){
+    visible = false;
+    return;
+  }
+  visible = true;
+
+  Eigen::Matrix< double, 3, 3 > f2f1;
+  f2f1 << 1./z, 0.0, -1.*x/(z*z),
+          0,  1./z,  -1*y/(z*z),
+          2.*x_/z, 2*y_/z, (-2*x_*x - 2*y_*y)/(z*z);
 
 
-}*/
+  Eigen::Matrix< double, 2, 3 > f3;
+  f3 << (d + 2*p1*y_ + 4*p2*x_), 2*p1*x_, (x_*k1 + 2*x_*k2*r2 + 3*x_*k3*r2*r2 + p2),
+        (2*p2*y_), d + 4*p1*y_ + 2*p2*x_, (y_*k1 + 2*y_*k2*r2 + 3*y_*k3*r2*r2 + p1);
+
+  Eigen::Matrix< double, 2, 2 > f4;
+  f4 << fx, 0,
+        0, fy;
+
+
+  jacobi = f4*f3*f2f1*f0;
+}

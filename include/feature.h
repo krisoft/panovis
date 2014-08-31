@@ -16,6 +16,8 @@ class Feature {
     Feature( const int index_offset, Map *map, double u, double v );
 
     void predict( double dt, Eigen::VectorXd &new_x, Eigen::MatrixXd &jacobi, Eigen::MatrixXd &noise );
+
+    bool search_area( int &top, int &left, int &width, int &height );
     
 };
 

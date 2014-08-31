@@ -169,3 +169,154 @@ TEST(camera_test, convert_uv_to_ea_android)
   }
 }
 
+TEST(camera_test, project_point_nodistorsion)
+{
+  CameraParams params = initSimpleParams();
+  Map map(params);
+
+  Eigen::Vector3d point;
+  Eigen::Vector2d uv;
+  Eigen::Matrix< double, 2, 3 > jacobi;
+  bool visible;
+
+
+  point << 0, 0, 100;
+  map.cam->project_point( point, visible, uv,  jacobi);
+  EXPECT_TRUE( visible );
+  EXPECT_NEAR( 255, uv(0), 0.001);
+  EXPECT_NEAR( 255, uv(1), 0.001);
+
+  EXPECT_NEAR( 1, jacobi(0,0), 0.001);
+  EXPECT_NEAR( 0, jacobi(0,1), 0.001);
+  EXPECT_NEAR( 0, jacobi(0,2), 0.001);
+
+  EXPECT_NEAR( 0, jacobi(1,0), 0.001);
+  EXPECT_NEAR( 1, jacobi(1,1), 0.001);
+  EXPECT_NEAR( 0, jacobi(1,2), 0.001);
+
+
+  point << 0, 0, -100;
+  map.cam->project_point( point, visible, uv,  jacobi);
+  EXPECT_FALSE( visible );
+
+
+  point << 10, 0, 100;
+  map.cam->project_point( point, visible, uv,  jacobi);
+  EXPECT_TRUE( visible );
+  EXPECT_NEAR( 265, uv(0), 0.001);
+  EXPECT_NEAR( 255, uv(1), 0.001);
+
+  EXPECT_NEAR( 1, jacobi(0,0), 0.001);
+  EXPECT_NEAR( 0, jacobi(0,1), 0.001);
+  EXPECT_NEAR( -0.1, jacobi(0,2), 0.001);
+  
+  EXPECT_NEAR( 0, jacobi(1,0), 0.001);
+  EXPECT_NEAR( 1, jacobi(1,1), 0.001);
+  EXPECT_NEAR( 0, jacobi(1,2), 0.001);
+
+  point << -10, 30, 100;
+  map.cam->project_point( point, visible, uv,  jacobi);
+  EXPECT_TRUE( visible );
+  EXPECT_NEAR( 245, uv(0), 0.001);
+  EXPECT_NEAR( 285, uv(1), 0.001);
+
+  EXPECT_NEAR( 1, jacobi(0,0), 0.001);
+  EXPECT_NEAR( 0, jacobi(0,1), 0.001);
+  EXPECT_NEAR( 0.1, jacobi(0,2), 0.001);
+  
+  EXPECT_NEAR( 0, jacobi(1,0), 0.001);
+  EXPECT_NEAR( 1, jacobi(1,1), 0.001);
+  EXPECT_NEAR( -0.3, jacobi(1,2), 0.001);
+
+  point << -260, 0, 100;
+  map.cam->project_point( point, visible, uv,  jacobi);
+  EXPECT_FALSE( visible );
+
+  point << 260, 0, 100;
+  map.cam->project_point( point, visible, uv,  jacobi);
+  EXPECT_FALSE( visible );
+
+  point << 0, -260, 100;
+  map.cam->project_point( point, visible, uv,  jacobi);
+  EXPECT_FALSE( visible );
+
+  point << 0, 260, 100;
+  map.cam->project_point( point, visible, uv,  jacobi);
+  EXPECT_FALSE( visible );
+
+  point << 10, 28, 200;
+  map.cam->project_point( point, visible, uv,  jacobi);
+  EXPECT_TRUE( visible );
+  EXPECT_NEAR( 260, uv(0), 0.001);
+  EXPECT_NEAR( 269, uv(1), 0.001);
+
+  EXPECT_NEAR( 0.5, jacobi(0,0), 0.001);
+  EXPECT_NEAR( 0, jacobi(0,1), 0.001);
+  EXPECT_NEAR( -0.025, jacobi(0,2), 0.001);
+  
+  EXPECT_NEAR( 0, jacobi(1,0), 0.001);
+  EXPECT_NEAR( 0.5, jacobi(1,1), 0.001);
+  EXPECT_NEAR( -0.07, jacobi(1,2), 0.001);
+
+  double angle = -1.0*M_PI/4.0; // 45
+
+  map.state( 0 ) = cos( angle*0.5 );
+  map.state( 1 ) = 0.0;
+  map.state( 2 ) = 1.0 * sin( angle*0.5 );
+  map.state( 3 ) = 0.0;
+
+  point << 70.71067811865474, 0, 70.71067811865474;
+  map.cam->project_point( point, visible, uv,  jacobi);
+  EXPECT_TRUE( visible );
+  EXPECT_NEAR( 255, uv(0), 0.001);
+  EXPECT_NEAR( 255, uv(1), 0.001);
+
+  EXPECT_NEAR( 0.70710678, jacobi(0,0), 0.001);
+  EXPECT_NEAR( 0, jacobi(0,1), 0.001);
+  EXPECT_NEAR( -0.70710678, jacobi(0,2), 0.001);
+  
+  EXPECT_NEAR( 0, jacobi(1,0), 0.001);
+  EXPECT_NEAR( 1, jacobi(1,1), 0.001);
+  EXPECT_NEAR( 0.0, jacobi(1,2), 0.001);
+
+
+  if( visible ){
+    cout << "visible" << endl;  
+  }else{
+    cout << "not visible" << endl;  
+  }
+  cout << "uv:" << uv << endl;
+  cout << "jacobi" << endl;
+  cout << jacobi << endl;
+  cout << "/jacobi" << endl;
+
+}
+
+TEST(camera_test, project_point_distorsion)
+{
+  CameraParams params = initAndroidParams();
+
+  Map map(params);
+
+  Eigen::Vector3d point;
+  Eigen::Vector2d uv;
+  Eigen::Matrix< double, 2, 3 > jacobi;
+  bool visible;
+
+  point << -42.0, 32.0, 87.0;
+  map.cam->project_point( point, visible, uv,  jacobi);
+  EXPECT_TRUE( visible );
+
+  EXPECT_NEAR( 167.366, uv(0), 0.001);
+  EXPECT_NEAR( 424.805, uv(1), 0.001);
+
+  EXPECT_NEAR( 3.53121, jacobi(0,0), 0.001);
+  EXPECT_NEAR( 1.13932, jacobi(0,1), 0.001);
+  EXPECT_NEAR( 1.28566, jacobi(0,2), 0.001);
+
+  EXPECT_NEAR( 1.13995, jacobi(1,0), 0.001);
+  EXPECT_NEAR( 6.35896, jacobi(1,1), 0.001);
+  EXPECT_NEAR( -1.78861, jacobi(1,2), 0.001);
+
+}
+
